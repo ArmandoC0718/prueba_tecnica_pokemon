@@ -2,6 +2,8 @@
 
 namespace App\Domain\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use stdClass;
 
@@ -20,6 +22,34 @@ class Move {
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'moves')]
     #[ORM\JoinColumn(name: 'type_id', referencedColumnName: 'id')]
     private ?Type $type = null;
+
+    #[ORM\ManyToMany(targetEntity:Pokemon::class, mappedBy:'moves')]
+    private Collection $pokemons;
+
+    public function __construct() 
+    {
+        $this->pokemons = new ArrayCollection();    
+    }
+
+    public function getPokemons(): Collection 
+    {
+       return $this->pokemons;    
+    }
+
+    public function addPokemon(Pokemon $pokemon): self 
+    {
+        if (!$this->pokemons->contains($pokemon)) {
+            $this->pokemons[] = $pokemon;
+        }
+
+        return $this;
+    }
+
+    public function removePokemon(Pokemon $pokemon): self
+    {
+        $this->pokemons->removeElement($pokemon);
+        return $this;
+    }
 
     // Getters
 

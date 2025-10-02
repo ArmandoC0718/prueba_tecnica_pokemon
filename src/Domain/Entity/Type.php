@@ -41,12 +41,38 @@ class Type
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Move::class)]
     private Collection $moves;
 
+    #[ORM\ManyToMany(targetEntity: Pokemon::class, mappedBy: 'types')]
+    private Collection $pokemons;
+
+
     public function __construct()
     {
         $this->moves = new ArrayCollection();
         $this->pokemons = new ArrayCollection();
     }
 
+    public function getPokemons(): Collection
+    {
+        return $this->pokemons;
+    }
+
+    public function addPokemon(Pokemon $pokemon): self
+    {
+        if (!$this->pokemons->contains($pokemon)) {
+            $this->pokemons[] = $pokemon;
+            $pokemon->addType($this);
+        }
+
+        return $this;
+    }
+
+    public function removePokemon(Pokemon $pokemon): self
+    {
+        if ($this->pokemons->removeElement($pokemon)) {
+            $pokemon->removeType($this);
+        }
+        return $this;
+    }
 
     public function getMoves(): Collection
     {
