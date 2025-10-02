@@ -5,16 +5,17 @@ namespace App\Application\UseCase;
 use App\Domain\Repository\PokemonRepositoryInterface;
 use App\Application\DTO\WildPokemonResponseDTO;
 
-class FindWildPokemonUseCase 
+class FindWildPokemonUseCase
 {
     public function __construct(
         private PokemonRepositoryInterface $pokemonRepository
-    ) {}
+    ) {
+    }
 
     public function execute(): ?WildPokemonResponseDTO
     {
         $wildPokemon = $this->pokemonRepository->findRandomWildPokemon();
-        
+
         if (!$wildPokemon) {
             return null;
         }
@@ -29,8 +30,10 @@ class FindWildPokemonUseCase
             attack: $wildPokemon->getAttack(),
             defense: $wildPokemon->getDefense(),
             speed: $wildPokemon->getSpeed(),
-            catchRate: $wildPokemon->getCatchRate(),
-            moves: array_map(fn($move) => $move->getName(), $wildPokemon->getMoves()->toArray())
+            moves: $wildPokemon->getMoves()->map(fn($move) => [
+                'id' => $move->getId(),
+                'name' => $move->getName()
+            ])->toArray(),
         );
     }
 }

@@ -22,5 +22,11 @@ services:
 
     App\Domain\Repository\PokemonRepositoryInterface:
         alias: App\Infrastructure\Repository\PokemonRepository
+    
+    App\Domain\Repository\UserRepositoryInterface:
+        alias: App\Infrastructure\Repository\UserRepository
+    
+    App\Domain\Repository\MoveRepositoryInterface:
+        alias: App\Infrastructure\Repository\MoveRepository
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

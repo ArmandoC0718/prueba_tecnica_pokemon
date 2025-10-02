@@ -14,7 +14,6 @@ class WildPokemonResponseDTO
         public readonly int $attack,
         public readonly int $defense,
         public readonly int $speed,
-        public readonly int $catchRate,
         public readonly array $moves
     ) {
     }
@@ -31,7 +30,6 @@ class WildPokemonResponseDTO
             'attack' => $this->attack,
             'defense' => $this->defense,
             'speed' => $this->speed,
-            'catch_rate' => $this->catchRate,
             'moves' => $this->moves
         ];
     }

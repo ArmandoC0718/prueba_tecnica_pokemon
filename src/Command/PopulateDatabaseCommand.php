@@ -213,6 +213,9 @@ class PopulateDatabaseCommand extends Command
                             }
                         }
 
+                        // Asignar movimientos al pokemon
+                        $this->assignMovesToPokemon($pokemon, $moves, $io);
+
                         $this->entityManager->persist($pokemon);
                         $pokemons[] = $pokemon;
 
@@ -221,6 +224,11 @@ class PopulateDatabaseCommand extends Command
                         throw $e;
                     }
                 } else {
+                    // Si el Pokemon existe pero no tiene movimientos, asignar algunos
+                    if ($existingPokemon->getMoves()->isEmpty()) {
+                        $this->assignMovesToPokemon($existingPokemon, $moves, $io);
+                        $this->entityManager->persist($existingPokemon);
+                    }
                     $pokemons[] = $existingPokemon;
                     $io->text("El pokemon ya existe");
                 }
@@ -283,6 +291,64 @@ class PopulateDatabaseCommand extends Command
         } catch (\Exception $e) {
             $io->error("Error al crear los usuarios: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    private function assignMovesToPokemon(Pokemon $pokemon, array $moves, SymfonyStyle $io): void
+    {
+        try {
+            // Get Pokemon's types for move compatibility
+            $pokemonTypes = [];
+            foreach ($pokemon->getTypes() as $type) {
+                $pokemonTypes[] = strtolower($type->getName());
+            }
+
+            // Filter compatible moves
+            $compatibleMoves = [];
+            foreach ($moves as $move) {
+                $moveType = strtolower($move->getType()->getName());
+                
+                // Allow normal type moves for all Pokemon
+                if ($moveType === 'normal') {
+                    $compatibleMoves[] = $move;
+                    continue;
+                }
+                
+                // Allow moves that match Pokemon's type
+                if (in_array($moveType, $pokemonTypes)) {
+                    $compatibleMoves[] = $move;
+                }
+            }
+
+            // If no compatible moves found, assign some normal type moves
+            if (empty($compatibleMoves)) {
+                foreach ($moves as $move) {
+                    if (strtolower($move->getType()->getName()) === 'normal') {
+                        $compatibleMoves[] = $move;
+                        if (count($compatibleMoves) >= 4) break;
+                    }
+                }
+            }
+
+            // Assign random moves (max 4)
+            $selectedMoves = array_rand($compatibleMoves, min(4, count($compatibleMoves)));
+            if (!is_array($selectedMoves)) {
+                $selectedMoves = [$selectedMoves];
+            }
+
+            foreach ($selectedMoves as $moveIndex) {
+                $pokemon->addMove($compatibleMoves[$moveIndex]);
+            }
+
+            $io->text(sprintf(
+                "Assigned %d moves to %s (types: %s)", 
+                count($selectedMoves),
+                $pokemon->getName(),
+                implode(', ', $pokemonTypes)
+            ));
+
+        } catch (\Exception $e) {
+            $io->warning("Error assigning moves to {$pokemon->getName()}: " . $e->getMessage());
         }
     }
 
